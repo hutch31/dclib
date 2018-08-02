@@ -1,4 +1,4 @@
-package wheatstone.common
+package dclib
 
 import chisel3._
 import chisel3.util._
@@ -8,7 +8,7 @@ class DCArbiter[D <: Data](data: D, inputs: Int, locking: Boolean) extends Modul
     val c = Vec(inputs, Flipped(Decoupled(data.cloneType)))
     val p = Decoupled(data.cloneType)
     val grant = Output(UInt(inputs.W))
-    //val rearb = if(locking) Input(UInt(inputs.W)) else 0.U
+    val rearb = if(locking) Some(Input(UInt(inputs.W))) else None
   })
 
   val just_granted = RegInit(1.asUInt(inputs.W))
@@ -56,13 +56,13 @@ class DCArbiter[D <: Data](data: D, inputs: Int, locking: Boolean) extends Modul
   io.p.valid := io_c_valid.orR()
   //to_tx_data := just_granted
   to_be_granted := just_granted
-  /*
+
   if (locking) {
     val rr_locked = RegInit(false.B)
 
     when ((io_c_valid & just_granted).orR() && !rr_locked) {
       nxt_rr_locked := true.B
-    }.elsewhen ((io_c_valid & just_granted & io.rearb).orR()) {
+    }.elsewhen ((io_c_valid & just_granted & io.rearb.get).orR()) {
       nxt_rr_locked := false.B
     }.otherwise {
       nxt_rr_locked := rr_locked
@@ -78,11 +78,10 @@ class DCArbiter[D <: Data](data: D, inputs: Int, locking: Boolean) extends Modul
       }
     }
   } else {
-  */
     nxt_rr_locked := false.B
     to_be_granted := nxt_grant(just_granted, io_c_valid, io.p.ready)
     //to_tx_data := nxt_grant(just_granted, io_c_valid, true.B)
-  //}
+  }
 
   when (to_be_granted =/= 0.U) {
     just_granted := to_be_granted

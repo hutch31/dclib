@@ -34,9 +34,17 @@ class DCOutputTester(tb: DCOutputTestbench) extends PeekPokeTester(tb) {
   poke(tb.io.src_pat, 0xFFFF.U)
   poke(tb.io.dst_pat, 0xFFFF.U)
 
-  for (i <- 0 until 100) {
-    step(1)
-    expect(tb.io.color_error, false.B)
-    expect(tb.io.seq_error, false.B)
-  }
+  step(100)
+
+  // try a couple other flow control patterns
+  poke(tb.io.src_pat, 0xF000.U)
+  poke(tb.io.dst_pat, 0xC0A0.U)
+
+  step(50)
+  poke(tb.io.src_pat, 0xAA55.U)
+  poke(tb.io.dst_pat, 0xF00F.U)
+
+  // errors are sticky, only need to check at the end
+  expect(tb.io.color_error, false.B)
+  expect(tb.io.seq_error, false.B)
 }
