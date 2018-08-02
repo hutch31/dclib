@@ -51,7 +51,7 @@ class DCArbiter[D <: Data](data: D, inputs: Int, locking: Boolean) extends Modul
     rv
   }
 
-  io_c_valid := Cat(io.c.map(_.valid))
+  io_c_valid := Cat(io.c.map(_.valid).reverse)
 
   io.p.valid := io_c_valid.orR()
   //to_tx_data := just_granted
