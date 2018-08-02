@@ -13,7 +13,6 @@ class DCArbiter[D <: Data](data: D, inputs: Int, locking: Boolean) extends Modul
 
   val just_granted = RegInit(1.asUInt(inputs.W))
   val to_be_granted = Wire(UInt(inputs.W))
-  //val to_tx_data = Wire(UInt(inputs.W))
   val nxt_rr_locked = Wire(Bool())
   val io_c_valid = Wire(UInt(inputs.W))
 
@@ -54,7 +53,6 @@ class DCArbiter[D <: Data](data: D, inputs: Int, locking: Boolean) extends Modul
   io_c_valid := Cat(io.c.map(_.valid).reverse)
 
   io.p.valid := io_c_valid.orR()
-  //to_tx_data := just_granted
   to_be_granted := just_granted
 
   if (locking) {
@@ -80,7 +78,6 @@ class DCArbiter[D <: Data](data: D, inputs: Int, locking: Boolean) extends Modul
   } else {
     nxt_rr_locked := false.B
     to_be_granted := nxt_grant(just_granted, io_c_valid, io.p.ready)
-    //to_tx_data := nxt_grant(just_granted, io_c_valid, true.B)
   }
 
   when (to_be_granted =/= 0.U) {

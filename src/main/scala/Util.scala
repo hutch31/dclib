@@ -106,7 +106,7 @@ class DCMirror[D <: Data](data: D, n: Int) extends Module {
   })
 
   val p_data = Reg(data.cloneType)
-  val p_valid = Reg(UInt(n.W))
+  val p_valid = RegInit(0.asUInt(n.W))
   val p_ready = Cat(io.p.map(_.ready).reverse)
   val nxt_accept = (p_valid === 0.U) || ((p_valid =/= 0.U) && ((p_valid & p_ready) === p_valid))
 
