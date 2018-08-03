@@ -5,10 +5,27 @@ This library is a collection of components I have found useful in building Chise
 of the components in this library were ported over from similar components implemented in Verilog in
 the sdlib repository.
 
-# Naming Conventions
+## Naming Conventions
 
 Blocks which have FIFO-like behavior (DCInput, DCOutput, DCHold, etc.) have their incoming port
 named "enq" and their outgoing port named "deq", to match the naming convention for Queue.  These
 parts are often swapped for Queue as designs evolve so matching their naming makes this simpler.
 
 Other blocks have their incoming ports named "c" (consumer) and outgoing ports named "p" (producer).
+
+## Using dclib
+
+The easiest way to incorporate dclib into your project if you are using git is to check it
+out as a submodule:
+
+`git submodule add https://github.com/hutch31/dclib.git
+git submodule init
+`
+
+Then add the new path to dclib to your build.sbt:
+
+`unmanagedSourceDirectories in Compile += baseDirectory.value / "dclib" / "src"
+`
+
+Remember that if pull dclib to get new source versions, you will also need to commit the
+pointer to the current rev of dclib in your base repository.

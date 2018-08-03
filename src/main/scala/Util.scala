@@ -37,6 +37,47 @@ object DCHold {
   }
 }
 
+class DCInput[D <: Data](data: D) extends Module {
+  val io = IO(new Bundle {
+    val enq = Flipped(new DecoupledIO(data.cloneType))
+    val deq = new DecoupledIO(data.cloneType)
+  })
+ // val r_valid = RegInit(false.B)
+  val ready_r = RegInit(false.B)
+  val occupied = RegInit(false.B)
+  val hold = Reg(data.cloneType)
+  val load = Wire(Bool())
+  val drain = Wire(Bool())
+
+  drain := occupied && io.deq.ready
+  load := io.enq.fire() && (!io.deq.ready || drain)
+
+  when (occupied) {
+    io.deq.bits := hold
+  }.otherwise {
+    io.deq.bits := io.enq.bits
+  }
+
+  io.deq.valid := io.enq.valid || occupied
+  when (load) {
+    occupied := true.B
+  }.elsewhen (drain) {
+    occupied := false.B
+  }
+
+  ready_r := (!occupied && !load) || (drain && !load)
+  io.enq.ready := ready_r
+}
+
+// Helper function for functional inference
+object DCInput {
+  def apply[D <: Data](x: DecoupledIO[D]): DecoupledIO[D] = {
+    val tout = Module(new DCInput(x.bits.cloneType))
+    tout.io.enq <> x
+    tout.io.deq
+  }
+}
+
 /**
   * Closes output timing on an input of type D
   * valid and bits will be registered, ready will be combinatorial

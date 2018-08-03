@@ -1,0 +1,16 @@
+[options]
+mode prove
+depth 8
+
+[engines]
+smtbmc yices
+
+[script]
+read_verilog -formal DCOutputTestbenchHarness.v DCOutputTestbench.v
+prep -top DCOutputTestbenchHarness
+
+[files]
+DCOutputTestbenchHarness.v 
+../../../generated/DCOutputTestbench.v
+
+

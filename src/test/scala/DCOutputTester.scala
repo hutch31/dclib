@@ -2,6 +2,7 @@ package dclib
 
 import chisel3._
 import chisel3.iotesters.PeekPokeTester
+import com.sun.tools.javac.tree.DCTree.DCIndex
 
 class DCOutputTestbench extends Module {
   val io = IO(new Bundle {
@@ -13,7 +14,7 @@ class DCOutputTestbench extends Module {
 
   val src = Module(new ColorSource(1, 16))
   val dst = Module(new ColorSink(1, 16))
-  val dut = Module(new DCOutput(new ColorToken(1,16)))
+  //val dut = Module(new DCOutput(new ColorToken(1,16)))
 
   src.io.pattern := io.src_pat
   dst.io.pattern := io.dst_pat
@@ -26,8 +27,9 @@ class DCOutputTestbench extends Module {
   src.io.enable := true.B
   dst.io.enable := true.B
 
-  src.io.p <> dut.io.enq
-  dut.io.deq <> dst.io.c
+  //dut.io.enq <> DCInput(src.io.p)
+  //dut.io.deq <> dst.io.c
+  dst.io.c <> DCOutput(DCInput(src.io.p))
 }
 
 class DCOutputTester(tb: DCOutputTestbench) extends PeekPokeTester(tb) {

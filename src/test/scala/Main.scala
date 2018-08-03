@@ -16,7 +16,10 @@ object Main extends App {
   iotesters.Driver.execute(args, () => new DCOutputTestbench) {
     tb => new DCOutputTester(tb)
   }
-  iotesters.Driver.execute(args, () => new ArbMirrorTestbench(4)) {
-    tb => new ArbMirrorTester(tb)
+  for (ways <- 2 until 8) {
+    iotesters.Driver.execute(args, () => new ArbMirrorTestbench(ways)) {
+      tb => new ArbMirrorTester(tb)
+    }
   }
 }
+
