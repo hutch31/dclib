@@ -43,14 +43,14 @@ class DCInput[D <: Data](data: D) extends Module {
     val deq = new DecoupledIO(data.cloneType)
   })
  // val r_valid = RegInit(false.B)
-  val ready_r = RegInit(false.B)
+  val ready_r = RegInit(true.B)
   val occupied = RegInit(false.B)
   val hold = Reg(data.cloneType)
   val load = Wire(Bool())
   val drain = Wire(Bool())
 
   drain := occupied && io.deq.ready
-  load := io.enq.fire() && (!io.deq.ready || drain)
+  load := io.enq.valid && ready_r && (!io.deq.ready || drain)
 
   when (occupied) {
     io.deq.bits := hold
@@ -61,6 +61,7 @@ class DCInput[D <: Data](data: D) extends Module {
   io.deq.valid := io.enq.valid || occupied
   when (load) {
     occupied := true.B
+    hold := io.enq.bits
   }.elsewhen (drain) {
     occupied := false.B
   }

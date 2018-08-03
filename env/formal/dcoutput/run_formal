@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cur_dir=`pwd`
+cd ../../..
+sbt "test:runMain dclib.Main --target-dir generated"
+cd $cur_dir
+
+sby -f dcoutput.sby
+
