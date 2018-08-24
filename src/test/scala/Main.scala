@@ -16,10 +16,15 @@ object Main extends App {
   iotesters.Driver.execute(args, () => new DCOutputTestbench) {
     tb => new DCOutputTester(tb)
   }
-  for (ways <- 2 until 8) {
-    iotesters.Driver.execute(args, () => new ArbMirrorTestbench(ways)) {
-      tb => new ArbMirrorTester(tb)
-    }
+
+  iotesters.Driver.execute(args, () => new ArbMirrorTestbench(5)) {
+    tb => new ArbMirrorTester(tb)
   }
+
+  iotesters.Driver.execute(args, () => new SyncFifoTestbench) {
+    tb => new SyncFifoTester(tb)
+  }
+
+  chisel3.Driver.execute(args, () => new SyncFifo(UInt(16.W), size=16))
 }
 
