@@ -13,6 +13,7 @@ class DeficitWeightedRR[D <: Data](data: D, n: Int, max: Int) extends Module {
     val limit = Vec(n, Input(UInt(log2Ceil(max).W)))
   })
 
+  val dcout = Module(new DCOutput(data.cloneType))
   val enable = Wire(Bool())
   val nxt_dc = Wire(Vec(n, UInt(log2Ceil(max).W)))
   val nxt_fill_dc = Wire(Vec(n, UInt(log2Ceil(max).W)))
@@ -22,11 +23,8 @@ class DeficitWeightedRR[D <: Data](data: D, n: Int, max: Int) extends Module {
   val nxt_gnt = Wire(UInt(log2Ceil(n).W))
   val gnt_r = RegEnable(init=0.U, next=nxt_gnt, enable=enable)
   val nxt_valid = Wire(Bool())
-  val valid_r = RegEnable(init=false.B, next=nxt_valid, enable=enable)
-  val data_r = RegEnable(next=io.req(nxt_gnt).bits, enable=enable)
   val refill = Wire(Bool())
 
-  //nxt_dc := dc
   nxt_gnt := gnt_r
   io.gnt := gnt_r
 
@@ -83,11 +81,12 @@ class DeficitWeightedRR[D <: Data](data: D, n: Int, max: Int) extends Module {
   }
 
   for (i <- 0 until n) {
-    io.req(i).ready := io.resp.ready && (gnt_r === i.U)
+    io.req(i).ready := dcout.io.enq.ready && (nxt_gnt === i.U)
   }
 
-  enable := reset.toBool() || !valid_r || (valid_r && io.resp.ready)
-  io.resp.valid := valid_r
-  io.resp.bits := data_r
+  dcout.io.enq.valid := nxt_valid
+  dcout.io.enq.bits := io.req(nxt_gnt).bits
+  dcout.io.deq <> io.resp
+  enable := dcout.io.enq.fire()
 }
 
