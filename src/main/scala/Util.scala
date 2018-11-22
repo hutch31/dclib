@@ -37,6 +37,38 @@ object DCHold {
   }
 }
 
+class DCHoldPipe[D <: Data](data: D, stages: Int=1) extends Module {
+  val io = IO(new Bundle {
+    val enq = Flipped(new DecoupledIO(data.cloneType))
+    val deq = new DecoupledIO(data.cloneType)
+  })
+
+  if (stages == 0) {
+    io.enq <> io.deq
+  } else {
+    val holders = for (i <- 0 until stages) yield Module(new DCHold(data.cloneType))
+
+    for (i <- 0 until stages) {
+      if (i == 0) {
+        holders(i).io.enq <> io.enq
+      } else {
+        holders(i).io.enq <> holders(i-1).io.deq
+      }
+    }
+    holders(stages-1).io.deq <> io.deq
+  }
+}
+
+// Helper function for functional inference
+object DCHoldPipe {
+  def apply[D <: Data](x : DecoupledIO[D], s : Int = 1) : DecoupledIO[D] = {
+    val tout = Module(new DCHoldPipe(x.bits.cloneType, s))
+    tout.io.enq <> x
+    tout.io.deq
+  }
+}
+
+
 class DCInput[D <: Data](data: D) extends Module {
   val io = IO(new Bundle {
     val enq = Flipped(new DecoupledIO(data.cloneType))
@@ -103,6 +135,16 @@ object DCOutput {
   def apply[D <: Data](x : DecoupledIO[D]) : DecoupledIO[D] = {
     val tout = Module(new DCOutput(x.bits.cloneType))
     tout.io.enq <> x
+    tout.io.deq
+  }
+}
+
+object DCFull {
+  def apply[D <: Data](x : DecoupledIO[D]) : DecoupledIO[D] = {
+    val tin = Module(new DCInput(x.bits.cloneType))
+    val tout = Module(new DCOutput(x.bits.cloneType))
+    tin.io.enq <> x
+    tin.io.deq <> tout.io.enq
     tout.io.deq
   }
 }
