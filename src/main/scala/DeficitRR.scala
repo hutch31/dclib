@@ -19,7 +19,7 @@ class DeficitWeightedRR[D <: Data](data: D, n: Int, max: Int) extends Module {
   val nxt_fill_dc = Wire(Vec(n, UInt(log2Ceil(max).W)))
   val has_credit = Wire(Vec(n, Bool()))
   val masked_has_credit = Wire(Vec(n, Bool()))
-  val dc = RegEnable(next=nxt_dc, enable=enable)
+  val dc = RegEnable(next=nxt_dc, enable=enable, init=Vec(Seq.fill(n)(0.U(log2Ceil(max).W))))
   val nxt_gnt = Wire(UInt(log2Ceil(n).W))
   val gnt_r = RegEnable(init=0.U, next=nxt_gnt, enable=enable)
   val nxt_valid = Wire(Bool())
@@ -36,30 +36,31 @@ class DeficitWeightedRR[D <: Data](data: D, n: Int, max: Int) extends Module {
     }
   }
 
+  /*
   when (reset.toBool()) {
     for (i <- 0 until n) {
-      nxt_fill_dc(i) := 0.U
+      //nxt_fill_dc(i) := 0.U
       has_credit(i) := false.B
       masked_has_credit(i) := false.B
     }
   }.otherwise {
-    for (i <- 0 until n) {
-      when(io.req(i).valid) {
-        val tmp = dc(i) + io.quant(i)
-        when (refill && (tmp > io.limit(i))) {
-          nxt_fill_dc(i) := io.limit(i)
-        }.elsewhen (refill) {
-          nxt_fill_dc(i) := tmp
-        }.otherwise {
-          nxt_fill_dc(i) := dc(i)
-        }
-        has_credit(i) := (nxt_fill_dc(i) >= io.req_qty(i))
+  */
+  for (i <- 0 until n) {
+    when(io.req(i).valid) {
+      val tmp = dc(i) + io.quant(i)
+      when (refill && (tmp > io.limit(i))) {
+        nxt_fill_dc(i) := io.limit(i)
+      }.elsewhen (refill) {
+        nxt_fill_dc(i) := tmp
       }.otherwise {
-        nxt_fill_dc(i) := 0.U
-        has_credit(i) := false.B
+        nxt_fill_dc(i) := dc(i)
       }
-      masked_has_credit(i) := has_credit(i) && (i.U > gnt_r)
+      has_credit(i) := (nxt_fill_dc(i) >= io.req_qty(i))
+    }.otherwise {
+      nxt_fill_dc(i) := 0.U
+      has_credit(i) := false.B
     }
+    masked_has_credit(i) := has_credit(i) && (i.U > gnt_r)
   }
 
   // select a bucket
