@@ -68,6 +68,26 @@ object DCHoldPipe {
   }
 }
 
+// Helper function for functional inference
+object DCPipe {
+  def apply[D <: Data](x : DecoupledIO[D], s : Int = 1) : DecoupledIO[D] = {
+    if (s == 0) return x
+    val dcin = for (i <- 0 until s) yield Module(new DCInput(x.bits.cloneType))
+    val dcout = for (i <- 0 until s) yield Module(new DCOutput(x.bits.cloneType))
+
+    for (i <- 0 until s) {
+      if (i == 0) {
+        dcin(i).io.enq <> x
+      } else {
+        dcin(i).io.enq <> dcout(i-1).io.deq
+      }
+      dcin(i).io.deq <> dcout(i).io.enq
+    }
+
+    dcout(s-1).io.deq
+  }
+}
+
 
 class DCInput[D <: Data](data: D) extends Module {
   val io = IO(new Bundle {
