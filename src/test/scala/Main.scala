@@ -9,9 +9,6 @@ import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
 
 object Main extends App {
-  // Generate RTL
-  chisel3.Driver.execute(args, () => new DCOutputTestbench)
-
   // Run unit tests
   iotesters.Driver.execute(args, () => new DCOutputTestbench) {
     tb => new DCOutputTester(tb)
@@ -21,10 +18,13 @@ object Main extends App {
     tb => new ArbMirrorTester(tb)
   }
 
-  iotesters.Driver.execute(args, () => new SyncFifoTestbench) {
-    tb => new SyncFifoTester(tb)
+  iotesters.Driver.execute(args, () => new DCDomainCrossingTestbench) {
+    tb => new DomainCrossingTester(tb)
   }
+  //iotesters.Driver.execute(args, () => new SyncFifoTestbench) {
+  //  tb => new SyncFifoTester(tb)
+  //}
 
-  chisel3.Driver.execute(args, () => new SyncFifo(UInt(16.W), size=16))
+  //chisel3.Driver.execute(args, () => new SyncFifo(UInt(16.W), size=16))
 }
 
