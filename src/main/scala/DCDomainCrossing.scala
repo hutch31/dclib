@@ -6,7 +6,8 @@ import chisel3.util._
 
 /**
   * Clock domain crossing block for low-speed signals.  Uses a pair of hold registers
-  * in each clock domain and synchronizes the control signals between them.
+  * in each clock domain and synchronizes the control signals between them.  Worst
+  * case throughput (equal clock speeds) should be 1 transaction per 6 cycles.
   *
   * Between holding registers uses two signals and looks for a phase change between
   * them.
@@ -28,7 +29,7 @@ class DCDomainCrossing[D <: Data](data: D, sync_size : Int=2) extends Module {
   val enq_hold = Reg(data.cloneType)
   val enq_phase_sync = withClockAndReset(io.deq_clock, io.deq_reset) { ShiftRegister(enq_phase, sync_size) }
   val deq_phase_sync = ShiftRegister(deq_phase, sync_size)
-  val deq_hold = Module(new DCHold(data.cloneType))
+  val deq_hold = withClockAndReset(io.deq_clock, io.deq_reset) { Module(new DCHold(data.cloneType)) }
 
   io.enq.ready := enq_phase === deq_phase_sync
   deq_hold.io.enq.valid := enq_phase_sync =/= deq_phase

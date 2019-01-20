@@ -24,6 +24,9 @@ object Main extends App {
   //iotesters.Driver.execute(args, () => new SyncFifoTestbench) {
   //  tb => new SyncFifoTester(tb)
   //}
+  iotesters.Driver.execute(args, () => new CreditTestbench) {
+    tb => new CreditTester(tb)
+  }
 
   //chisel3.Driver.execute(args, () => new SyncFifo(UInt(16.W), size=16))
 }
