@@ -10,7 +10,7 @@ import chisel3.util._
   * This is an input-based implementation which has known HOL issues,
   * maximum throughput is 58% with uniform distribution.
   */
-class DCMultiArbiter[D <: Data](data: D, nsource: Int, ndest: Int) extends Module {
+class DCMultiArbiter[D <: Data](data: D, nsource: Int, ndest: Int, iq : Int = 0) extends Module {
   val io = IO(new Bundle {
     val c = Vec(nsource, Flipped(Decoupled(data.cloneType)))
     val c_dest = Vec(nsource, Input(UInt(log2Ceil(ndest).W)))
@@ -29,7 +29,11 @@ class DCMultiArbiter[D <: Data](data: D, nsource: Int, ndest: Int) extends Modul
   val arbvec = for (i <- 0 until ndest) yield {
     val iarb = Module(new DCArbiter(data, nsource, locking = false))
     for (j <- 0 until nsource) {
-      iarb.io.c(j) <> mirvec(j).io.p(i)
+      if (iq > 0) {
+        iarb.io.c(j) <> Queue(mirvec(j).io.p(i), iq)
+      } else {
+        iarb.io.c(j) <> mirvec(j).io.p(i)
+      }
     }
     iarb.io.p <> io.p(i)
     io.p_grant(i) := iarb.io.grant

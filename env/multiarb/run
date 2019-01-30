@@ -1,0 +1,6 @@
+rm -f a.out MultiArbTestbench.v
+make -C ../..
+mv ../../MultiArbTestbench.v .
+iverilog bench.v MultiArbTestbench.v
+./a.out | tee bench.log
+./calc_stats.py

@@ -28,6 +28,11 @@ object Main extends App {
     tb => new CreditTester(tb)
   }
 
+  iotesters.Driver.execute(args, () => new MultiArbTestbench(8)) {
+    tb => new MultiArbTester(tb)
+  }
+
+  chisel3.Driver.execute(args, () => new MultiArbTestbench(ways=8, iq=4))
   //chisel3.Driver.execute(args, () => new SyncFifo(UInt(16.W), size=16))
 }
 
