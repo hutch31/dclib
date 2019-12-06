@@ -23,6 +23,7 @@ class DCDomainCrossing[D <: Data](data: D, sync_size : Int=2) extends Module {
     val deq_clock = Input(Clock())
     val deq_reset = Input(Bool())
   })
+  override def desiredName: String = "DCDomainCrossing_" + data.toString
 
   val enq_phase = RegInit(init=false.B)
   val deq_phase = withClockAndReset(io.deq_clock, io.deq_reset) { RegInit(init=false.B) }

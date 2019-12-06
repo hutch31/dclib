@@ -18,6 +18,7 @@ class DCMultiArbiter[D <: Data](data: D, nsource: Int, ndest: Int, iq : Int = 0)
     val p = Vec(ndest, Decoupled(data.cloneType))
     val p_grant = Vec(ndest, Output(UInt(log2Ceil(nsource).W)))
   })
+  override def desiredName: String = "DCMultiArbiter_" + data.toString
 
   val mirvec = for (i <- 0 until nsource) yield {
     val imirror = Module(new DCMirror(data, ndest))

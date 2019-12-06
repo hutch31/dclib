@@ -12,6 +12,7 @@ class DeficitWeightedRR[D <: Data](data: D, n: Int, max: Int) extends Module {
     val quant = Vec(n, Input(UInt(log2Ceil(max).W)))
     val limit = Vec(n, Input(UInt(log2Ceil(max).W)))
   })
+  override def desiredName: String = "DeficitWeightedRR_" + data.toString
 
   val dcout = Module(new DCOutput(data.cloneType))
   val enable = Wire(Bool())

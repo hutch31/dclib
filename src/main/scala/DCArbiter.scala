@@ -10,6 +10,7 @@ class DCArbiter[D <: Data](data: D, inputs: Int, locking: Boolean) extends Modul
     val grant = Output(UInt(inputs.W))
     val rearb = if(locking) Some(Input(UInt(inputs.W))) else None
   })
+  override def desiredName: String = "DCArbiter_" + data.toString
 
   val just_granted = RegInit(1.asUInt(inputs.W))
   val to_be_granted = Wire(UInt(inputs.W))

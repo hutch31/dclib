@@ -19,9 +19,12 @@ class SyncFifo[D <: Data](data: D, size: Int) extends Module {
     val enq_usage = Output(UInt(ptrsz.W))
     val deq_usage = Output(UInt(ptrsz.W))
   })
+  override def desiredName: String = "SyncFifo_" + data.toString
+
   val head = Module(new SyncFifoHead(size))
   val tail = withClockAndReset(io.deq_clock, io.deq_reset)(Module(new SyncFifoTail(size)))
-  val mem = Module(new SyncFifoMem(data, size))
+  //val mem = Module(new SyncFifoMem(data, size))
+  val mem = SyncReadMem(size, data.cloneType)
   val tsync1 = Reg(UInt(ptrsz.W))
   val tsync2 = Reg(UInt(ptrsz.W))
 
@@ -29,9 +32,12 @@ class SyncFifo[D <: Data](data: D, size: Int) extends Module {
   head.io.enq_valid := io.enq.valid
   io.enq_usage := head.io.usage
 
-  mem.io.wr_data := io.enq.bits
-  mem.io.wr_en := head.io.wr_en
-  mem.io.wr_addr := head.io.wr_addr
+  when (head.io.wr_en) {
+    mem.write(head.io.wr_addr, io.enq.bits)
+  }
+  //mem.io.wr_data := io.enq.bits
+  //mem.io.wr_en := head.io.wr_en
+  //mem.io.wr_addr := head.io.wr_addr
 
   tsync1 := tail.io.rdptr_tail
   tsync2 := tsync1
@@ -43,12 +49,12 @@ class SyncFifo[D <: Data](data: D, size: Int) extends Module {
 
     io.deq.valid := tail.io.deq_valid
     tail.io.deq_ready := io.deq.ready
-    io.deq.bits := mem.io.rd_data
+    io.deq.bits := mem.read(tail.io.rd_addr)
     io.deq_usage := tail.io.usage
 
-    mem.io.rd_en := tail.io.rd_en
-    mem.io.rd_addr := tail.io.rd_addr
-    mem.io.rd_clock := io.deq_clock
+    //mem.io.rd_en := tail.io.rd_en
+    //mem.io.rd_addr := tail.io.rd_addr
+    //mem.io.rd_clock := io.deq_clock
 
     hsync1 := head.io.wrptr_head
     hsync2 := hsync1

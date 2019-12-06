@@ -17,6 +17,7 @@ class DCHold[D <: Data](data: D) extends Module {
     val enq = Flipped(new DecoupledIO(data.cloneType))
     val deq = new DecoupledIO(data.cloneType)
   })
+  override def desiredName: String = "DCHold_" + data.toString
 
   val p_valid = RegInit(init = 0.U)
   val p_data = Reg(data.cloneType)

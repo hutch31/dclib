@@ -16,6 +16,7 @@ class DCDemux[D <: Data](data: D, n: Int) extends Module {
     val c = Flipped(new DecoupledIO(data.cloneType))
     val p = Vec(n, new DecoupledIO(data.cloneType))
   })
+  override def desiredName: String = "DCDemux_" + data.toString
 
   io.c.ready := 0.U
   for (i <- 0 until n) {
