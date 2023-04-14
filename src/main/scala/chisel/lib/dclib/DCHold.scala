@@ -1,7 +1,8 @@
-package dclib
+package chisel.lib.dclib
 
 import chisel3._
 import chisel3.util.DecoupledIO
+import chisel3.util.ImplicitConversions.intToUInt
 
 /**
   * Creates a ready/valid holding register, will not accept new data
@@ -12,15 +13,11 @@ import chisel3.util.DecoupledIO
   *
   * @param data The data type for the payload
   */
-class DCHold[D <: Data](data: D) extends Module {
-  val io = IO(new Bundle {
-    val enq = Flipped(new DecoupledIO(data.cloneType))
-    val deq = new DecoupledIO(data.cloneType)
-  })
+class DCHold[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) {
   override def desiredName: String = "DCHold_" + data.toString
 
   val p_valid = RegInit(init = 0.U)
-  val p_data = Reg(data.cloneType)
+  val p_data = if (dataReset) RegInit(init=0.asTypeOf(data.cloneType)) else Reg(data.cloneType)
 
   when (io.enq.valid && !p_valid) {
     p_valid := io.enq.valid

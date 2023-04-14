@@ -1,7 +1,8 @@
-package dclib
+package chisel.lib.dclib
 
 import chisel3._
 import chisel3.util.DecoupledIO
+import chisel3.util.ImplicitConversions.intToUInt
 
 /**
   * Closes timing on the ready signal of a decoupled interface.  Called an
@@ -11,17 +12,13 @@ import chisel3.util.DecoupledIO
   * Internally implements a single hold register to hold data in the event that
   * deq interface is not ready
   */
-class DCInput[D <: Data](data: D) extends Module {
-  val io = IO(new Bundle {
-    val enq = Flipped(new DecoupledIO(data.cloneType))
-    val deq = new DecoupledIO(data.cloneType)
-  })
+class DCInput[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) {
   override def desiredName: String = "DCInput_" + data.toString
 
   // val r_valid = RegInit(false.B)
   val ready_r = RegInit(true.B)
   val occupied = RegInit(false.B)
-  val hold = Reg(data.cloneType)
+  val hold = if (dataReset) RegInit(init=0.asTypeOf(data.cloneType)) else Reg(data.cloneType)
   val load = Wire(Bool())
   val drain = Wire(Bool())
 

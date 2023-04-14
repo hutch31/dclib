@@ -9,7 +9,33 @@
 
 // This is from a locally published version
 // libraryDependencies += "edu.berkeley.cs" %% "chisel" % "2.3-SNAPSHOT"
+// See README.md for license details.
+ThisBuild / scalaVersion     := "2.13.8"
+ThisBuild / version          := "0.1-SNAPSHOT"
+ThisBuild / organization     := "org.ghutchis"
 
+val chiselVersion = "3.5.1"
+
+lazy val root = (project in file("."))
+  .settings(
+    name := "packetlib",
+    libraryDependencies ++= Seq(
+      "edu.berkeley.cs" %% "chisel3" % chiselVersion,
+      "edu.berkeley.cs" %% "chiseltest" % "0.5.1" % "test"
+    ),
+    scalacOptions ++= Seq(
+      "-language:reflectiveCalls",
+      "-deprecation",
+      "-feature",
+      "-Xcheckinit",
+      "-P:chiselplugin:genBundleElements",
+    ),
+    addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % chiselVersion cross CrossVersion.full),
+  )
+
+//Compile / mainClass := Some("generate.Generate")
+
+/*
 def scalacOptionsVersion(scalaVersion: String): Seq[String] = {
   Seq() ++ {
     // If we're building with Scala > 2.11, enable the compile option
@@ -36,14 +62,6 @@ def javacOptionsVersion(scalaVersion: String): Seq[String] = {
   }
 }
 
-name := "dclib"
-
-version := "3.1.0"
-
-scalaVersion := "2.11.12"
-
-crossScalaVersions := Seq("2.11.12", "2.12.4")
-
 resolvers ++= Seq(
   Resolver.sonatypeRepo("snapshots"),
   Resolver.sonatypeRepo("releases")
@@ -62,3 +80,4 @@ scalacOptions ++= scalacOptionsVersion(scalaVersion.value)
 
 javacOptions ++= javacOptionsVersion(scalaVersion.value)
 
+*/

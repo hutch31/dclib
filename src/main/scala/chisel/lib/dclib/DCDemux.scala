@@ -1,4 +1,4 @@
-package dclib
+package chisel.lib.dclib
 
 import chisel3.util._
 import chisel3._
@@ -26,6 +26,22 @@ class DCDemux[D <: Data](data: D, n: Int) extends Module {
       io.c.ready := io.p(i).ready
     }.otherwise {
       io.p(i).valid := 0.U
+    }
+  }
+}
+
+class DCMux[D <: Data](data: D, n: Int) extends Module {
+  val io = IO(new Bundle {
+    val sel = Input(UInt(log2Ceil(n).W))
+    val c = Vec(n, Flipped(new DecoupledIO(data.cloneType)))
+    val p = new DecoupledIO(data.cloneType)
+  })
+  io.p <> io.c(0)
+  for (i <- 0 until n) {
+    when (i.U === io.sel) {
+      io.p <> io.c(i)
+    }.otherwise {
+      io.c(i).ready := 0.B
     }
   }
 }
