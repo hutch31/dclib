@@ -1,4 +1,4 @@
-package chisel.lib.dclib
+package chisel.lib.dclib.experimental
 
 import chisel3._
 import chisel3.util._
