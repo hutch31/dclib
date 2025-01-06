@@ -1,8 +1,16 @@
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
+
+
 package chisel.lib.dclib
 
 import chisel3._
 import chisel3.util.DecoupledIO
 import chisel3.util.ImplicitConversions.intToUInt
+import chisel3.util.experimental.InlineInstance
 
 /**
   * Creates a ready/valid holding register, will not accept new data
@@ -13,7 +21,11 @@ import chisel3.util.ImplicitConversions.intToUInt
   *
   * @param data The data type for the payload
   */
-class DCHold[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) {
+class DCHold[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) with InlineInstance {
+//  val io = IO(new Bundle {
+//    val enq = Flipped(new DecoupledIO(data.cloneType))
+//    val deq = new DecoupledIO(data.cloneType)
+//  })
   override def desiredName: String = "DCHold_" + data.toString
 
   val p_valid = RegInit(init = 0.U)

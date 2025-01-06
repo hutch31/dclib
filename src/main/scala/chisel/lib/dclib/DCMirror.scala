@@ -1,6 +1,14 @@
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
+
+
 package chisel.lib.dclib
 import chisel3._
 import chisel3.util._
+import chisel3.util.ImplicitConversions.intToUInt
 
 /**
  * Sends tokens to multiple output destinations, as selected by bit
@@ -15,7 +23,7 @@ import chisel3.util._
  * @param data Payload data type
  * @param n    Number of output destinations
  */
-class DCMirror[D <: Data](data: D, n: Int) extends Module {
+class DCMirror[D <: Data](data: D, n: Int, dataReset : Boolean = false) extends Module {
   val io = IO(new Bundle {
     val dst = Input(UInt(n.W))
     val c = Flipped(new DecoupledIO(data.cloneType))
@@ -23,7 +31,7 @@ class DCMirror[D <: Data](data: D, n: Int) extends Module {
   })
   override def desiredName: String = "DCMirror_" + data.toString + "_N" + n.toString
 
-  val p_data = Reg(data.cloneType)
+  val p_data = if (dataReset) RegInit(0.asTypeOf(data)) else Reg(data.cloneType)
   val p_valid = RegInit(0.asUInt(n.W))
   val p_ready = Cat(io.p.map(_.ready).reverse)
   val nxt_accept = (p_valid === 0.U) || ((p_valid =/= 0.U) && ((p_valid & p_ready) === p_valid))

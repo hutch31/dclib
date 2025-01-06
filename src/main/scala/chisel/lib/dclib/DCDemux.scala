@@ -1,7 +1,15 @@
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
+
+
 package chisel.lib.dclib
 
 import chisel3.util._
 import chisel3._
+import chisel3.util.experimental.InlineInstance
 
 /**
   * Demultiplex a stream of tokens with an identifier "sel",
@@ -10,7 +18,7 @@ import chisel3._
   * @param data  Data type of incoming/outgoing data
   * @param n     Number of mux outputs
   */
-class DCDemux[D <: Data](data: D, n: Int) extends Module {
+class DCDemux[D <: Data](data: D, n: Int) extends Module with InlineInstance {
   val io = IO(new Bundle {
     val sel = Input(UInt(log2Ceil(n).W))
     val c = Flipped(new DecoupledIO(data.cloneType))
@@ -30,7 +38,7 @@ class DCDemux[D <: Data](data: D, n: Int) extends Module {
   }
 }
 
-class DCMux[D <: Data](data: D, n: Int) extends Module {
+class DCMux[D <: Data](data: D, n: Int) extends Module with InlineInstance{
   val io = IO(new Bundle {
     val sel = Input(UInt(log2Ceil(n).W))
     val c = Vec(n, Flipped(new DecoupledIO(data.cloneType)))

@@ -1,21 +1,29 @@
-package chisel.lib.dclib.experimental
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
+
+
+package chisel.lib.dclib
 
 import chisel3._
 import chisel3.util._
 
-class DCSerial[D <: Data](data: D, clockPerBit : Int = 8) extends Module {
-  override def desiredName : String = "dc_serial_" + data.toString + "_cpb" + clockPerBit.toString
+class DCSerial[D <: Data](data: D, maxClockPerBit : Int = 8) extends Module {
+  override def desiredName : String = "dc_serial_" + data.toString + "_cpb" + maxClockPerBit.toString
 
   val io = IO(new Bundle {
     val dataIn = Flipped(Decoupled(data.cloneType))
     val serialClk = Output(Bool())
     val serialData = Output(Bool())
+    val clockPerBit = Input(UInt(log2Ceil(maxClockPerBit).W))
   })
 
   val txbits = data.getWidth+2
-  val hold = Reg(UInt(txbits.W))
-  val bitcount = Reg(UInt(log2Ceil(txbits).W))
-  val sercount = Reg(UInt(log2Ceil(clockPerBit).W))
+  val hold = RegInit(0.U(txbits.W))
+  val bitcount = RegInit(0.U(log2Ceil(txbits).W))
+  val sercount = RegInit(0.U(log2Ceil(maxClockPerBit).W))
   val regout = RegInit(init = 0.B)
   val regclk = RegInit(init = 0.B)
   val s_idle :: s_transmit1 :: s_transmit0 :: Nil = Enum(3)
@@ -33,7 +41,7 @@ class DCSerial[D <: Data](data: D, clockPerBit : Int = 8) extends Module {
       regclk := 0.B
       io.dataIn.ready := true.B
       when(io.dataIn.valid) {
-        hold := Cat(io.dataIn.bits.asUInt().xorR(), io.dataIn.bits.asUInt(), 1.U(1.W))
+        hold := Cat(io.dataIn.bits.asUInt.xorR, io.dataIn.bits.asUInt, 1.U(1.W))
         state := s_transmit0
       }
     }
@@ -42,14 +50,14 @@ class DCSerial[D <: Data](data: D, clockPerBit : Int = 8) extends Module {
       regout := hold(bitcount)
       regclk := 0.B
       sercount := sercount + 1.U
-      when (sercount === (clockPerBit/2).U) {
+      when (sercount === io.clockPerBit(io.clockPerBit.getWidth-1,1)) {
         state := s_transmit1
       }
     }
 
     is (s_transmit1) {
       regclk := 1.B
-      when (sercount === (clockPerBit-1).U) {
+      when (sercount === io.clockPerBit) {
         sercount := 0.U
         when (bitcount === (txbits-1).U) {
           state := s_idle
@@ -75,9 +83,9 @@ class DCDeserial[D <: Data](data: D) extends Module {
   override def desiredName : String = "dc_deserial_" + data.toString
 
   val txbits = data.getWidth+2
-  val hold = Reg(Vec(txbits, Bool()))
+  val hold = RegInit(VecInit(Seq.fill(txbits)(0.B)))
   val bitcount = RegInit(init=0.U(log2Ceil(txbits).W))
-  val prevClk = RegNext(next=io.serialClk)
+  val prevClk = RegNext(next=io.serialClk, 0.B)
   val posEdge = io.serialClk & !prevClk
   val s_idle :: s_receive :: s_hold :: Nil = Enum(3)
   val state = RegInit(init = s_idle)
@@ -108,7 +116,7 @@ class DCDeserial[D <: Data](data: D) extends Module {
     }
 
     is (s_hold) {
-      io.parityErr := cathold(txbits-1,1).xorR()
+      io.parityErr := cathold(txbits-1,1).xorR
       bitcount := 0.U
       io.dataOut.valid := true.B
       when (io.dataOut.ready) {

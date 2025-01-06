@@ -1,3 +1,10 @@
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
+
+
 package chisel.lib.dclib
 
 import chisel3._
@@ -29,7 +36,7 @@ class DCGearbox(inWidth : Int, outWidth : Int, hasClear : Boolean = false) exten
     //a % inWidth.U
     modTable(a)
   }
-  val hold = Reg(Vec(holdSize, UInt(inWidth.W)))
+  val hold = RegInit(VecInit(Seq.fill(holdSize)(0.U(inWidth.W))))
   val bitCount = RegInit(init=0.U(log2Ceil(holdSize*inWidth+1).W))
   val bitShift = RegInit(init=0.U(log2Ceil(inWidth).W))
   val wordCount = RegInit(init=0.U(log2Ceil(holdSize+1).W))

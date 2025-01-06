@@ -1,8 +1,16 @@
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
+
+
 package chisel.lib.dclib
 
 import chisel3._
 import chisel3.util.DecoupledIO
 import chisel3.util.ImplicitConversions.intToUInt
+import chisel3.util.experimental.InlineInstance
 
 /**
   * Closes timing on the ready signal of a decoupled interface.  Called an
@@ -12,7 +20,11 @@ import chisel3.util.ImplicitConversions.intToUInt
   * Internally implements a single hold register to hold data in the event that
   * deq interface is not ready
   */
-class DCInput[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) {
+class DCInput[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) with InlineInstance {
+//  val io = IO(new Bundle {
+//    val enq = Flipped(new DecoupledIO(data.cloneType))
+//    val deq = new DecoupledIO(data.cloneType)
+//  })
   override def desiredName: String = "DCInput_" + data.toString
 
   // val r_valid = RegInit(false.B)

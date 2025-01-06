@@ -1,3 +1,10 @@
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
+
+
 package chisel.lib.dclib
 import chisel3._
 import chisel3.util.ImplicitConversions.intToUInt
@@ -24,6 +31,10 @@ object DCFull {
  * @param data Incoming data type
  */
 class DCFull[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) {
+//  val io = IO(new Bundle {
+//    val enq = Flipped(new DecoupledIO(data.cloneType))
+//    val deq = new DecoupledIO(data.cloneType)
+//  })
   override def desiredName: String = "DCFull_" + data.toString
 
   // These are used for control replication for large fan-out
@@ -43,10 +54,10 @@ class DCFull[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstract
   val hold_0 = if (dataReset) RegInit(init=0.asTypeOf(data.cloneType)) else Reg(data.cloneType)
   val nxt_shift = WireDefault(0.B)
   val nxt_load = WireDefault(0.B)
-  val nxt_send_sel = WireDefault(1.B)
-  val shift = Reg(Bool())
-  val load = Reg(Bool())
-  val send_sel = Reg(Bool())
+  val nxt_send_sel = Wire(Bool())
+  val shift = RegInit(0.B)
+  val load = RegInit(0.B)
+  val send_sel = RegNext(init=0.B, next=nxt_send_sel)
   val c_drdy = RegInit(1.B)
   val p_srdy = RegInit(0.B)
 
@@ -58,6 +69,7 @@ class DCFull[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstract
   val pop_vld = io.deq.valid & io.deq.ready
 
   state := nxt_state
+  nxt_send_sel := 0.B
 
   switch (state) {
     is (s_0_0) {
@@ -127,7 +139,6 @@ class DCFull[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstract
 
   shift := nxt_shift
   load := nxt_load
-  send_sel := nxt_send_sel
 
   when (shift) {
     hold_0 := hold_1

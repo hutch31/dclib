@@ -43,14 +43,14 @@ ThisBuild / credentials += Credentials(
   sys.env.getOrElse("GITHUB_TOKEN", "abc123") // password
 )
 
-val chiselVersion = "3.5.1"
+val chiselVersion = "3.6.0"
 
 lazy val root = (project in file("."))
   .settings(
     name := "dclib",
     libraryDependencies ++= Seq(
       "edu.berkeley.cs" %% "chisel3" % chiselVersion,
-      "edu.berkeley.cs" %% "chiseltest" % "0.5.1" % "test"
+      "edu.berkeley.cs" %% "chiseltest" % "0.6.2" % "test",
     ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
