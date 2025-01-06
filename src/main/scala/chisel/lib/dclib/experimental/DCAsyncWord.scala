@@ -1,6 +1,12 @@
-package chisel.lib.dclib.experimental
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
 
-import chisel.lib.dclib.defaultDoubleSync
+
+package chisel.lib.dclib
+
 import chisel3._
 import chisel3.util._
 
@@ -23,7 +29,7 @@ class DCAsyncWord[D <: Data](data: D, doubleSync: (UInt) => UInt = defaultDouble
   val deqPhase_D = RegInit(init=0.B)
   val deqPhase_E = doubleSync(deqPhase_D).asBool
   val loadData = WireDefault(0.B)
-  val dataOut = RegEnable(next=io.enq.bits, enable=loadData)
+  val dataOut = RegEnable(io.enq.bits, loadData)
   val sDeqIdle :: sDeqValid :: sDeqClear :: Nil = Enum(3)
   val deqState = RegInit(init=sDeqIdle)
 
