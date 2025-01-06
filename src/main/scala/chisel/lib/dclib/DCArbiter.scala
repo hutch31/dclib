@@ -1,3 +1,10 @@
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
+
+
 package chisel.lib.dclib
 
 import chisel3._
@@ -6,13 +13,7 @@ import chisel3.util._
 /**
  * Round-robin arbiter
  *
- * Accepts number of inputs and arbitrates between them on a per-cycle basis.  Arbitration
- * is done round-robin, so once an input port is granted, that port has the lowest priority
- * during the next arbitration cycle.
- *
- * When locking is false, the arbiter performs arbitration each time it accepts a transaction.
- * When locking is true, once a port is granted, the arbiter will grant only to that port until
- * the optional rearb port is true with an accepted transaction.
+ * Accepts number of inputs and arbitrates between them on a per-cycle basis.
  *
  * @param data    Data type of item to be arbitrated
  * @param inputs  Number of inputs to arbiter
@@ -29,7 +30,7 @@ class DCArbiter[D <: Data](data: D, inputs: Int, locking: Boolean) extends Modul
 
   val just_granted = RegInit(1.asUInt(inputs.W))
   val to_be_granted = Wire(UInt(inputs.W))
-  val nxt_rr_locked = Wire(Bool())
+  //val nxt_rr_locked = Wire(Bool())
   val io_c_valid = Wire(UInt(inputs.W))
 
   for (i <- 0 until inputs) {
@@ -62,31 +63,24 @@ class DCArbiter[D <: Data](data: D, inputs: Int, locking: Boolean) extends Modul
 
   io_c_valid := Cat(io.c.map(_.valid).reverse)
 
-  io.p.valid := io_c_valid.orR
+  io.p.valid := (io_c_valid & to_be_granted).orR
   to_be_granted := just_granted
 
   if (locking) {
     val rr_locked = RegInit(false.B)
-
-    when ((io_c_valid & just_granted).orR && !rr_locked) {
-      nxt_rr_locked := true.B
-    }.elsewhen ((io_c_valid & just_granted & io.rearb.get).orR) {
-      nxt_rr_locked := false.B
+    val rearb = (io_c_valid & just_granted & io.rearb.get).orR
+    when (rr_locked) {
+      when (io.p.fire && rearb) {
+        rr_locked := 0.B
+      }
     }.otherwise {
-      nxt_rr_locked := rr_locked
-    }
-
-    when (nxt_rr_locked && (io_c_valid & just_granted).orR) {
-      to_be_granted := just_granted
-    }.otherwise {
-      when (io.p.ready) {
-        to_be_granted := just_granted.rotateRight(1)
-      }.otherwise {
-        to_be_granted := just_granted
+      when (io_c_valid.orR) {
+        to_be_granted := nxt_grant(just_granted, io_c_valid, 1.B)
+        rr_locked := !io.rearb.get(PriorityEncoder(to_be_granted))
       }
     }
   } else {
-    nxt_rr_locked := false.B
+    //nxt_rr_locked := false.B
     to_be_granted := nxt_grant(just_granted, io_c_valid, io.p.ready)
   }
 
@@ -94,6 +88,6 @@ class DCArbiter[D <: Data](data: D, inputs: Int, locking: Boolean) extends Modul
     just_granted := to_be_granted
   }
 
-  io.p.bits := MuxLookup(PriorityEncoder(to_be_granted), io.c(0).bits, for (i <- 0 until inputs) yield (i.U -> io.c(i).bits))
+  io.p.bits := MuxLookup(PriorityEncoder(to_be_granted), io.c(0).bits)(for (i <- 0 until inputs) yield (i.U -> io.c(i).bits))
 }
 

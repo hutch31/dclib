@@ -1,17 +1,26 @@
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
+
+
 package chisel.lib.dclib
 
 import chisel3._
 import chisel3.util.ImplicitConversions.intToUInt
 import chisel3.util._
+import chisel3.util.experimental.InlineInstance
 
 /**
  * Closes output timing on an input of type D
  * deq.valid and deq.bits will be registered, enq.ready will be combinatorial
- *
- * @param data Data type to be wrapped
- * @param dataReset When true, resets the datapath bits.  When false, reset is only for valid/ready.
  */
-class DCOutput[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) {
+class DCOutput[D <: Data](data: D, dataReset : Boolean = false) extends Module with InlineInstance {
+  val io = IO(new Bundle {
+    val enq = Flipped(new DecoupledIO(data.cloneType))
+    val deq = new DecoupledIO(data.cloneType)
+  })
   override def desiredName: String = "DCOutput_" + data.toString
 
   val r_valid = RegInit(false.B)
@@ -19,9 +28,9 @@ class DCOutput[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstra
   io.enq.ready := io.deq.ready || !r_valid
   r_valid := io.enq.fire || (r_valid && !io.deq.ready)
   if (dataReset)
-    io.deq.bits := RegEnable(next=io.enq.bits, enable=io.enq.fire, init=0.asTypeOf(data))
+    io.deq.bits := RegEnable(io.enq.bits, 0.asTypeOf(data), io.enq.fire)
   else
-    io.deq.bits := RegEnable(next=io.enq.bits, enable=io.enq.fire)
+    io.deq.bits := RegEnable(io.enq.bits, io.enq.fire)
   io.deq.valid := r_valid
 }
 

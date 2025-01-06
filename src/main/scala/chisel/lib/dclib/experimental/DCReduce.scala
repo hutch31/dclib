@@ -1,17 +1,24 @@
-package chisel.lib.dclib.experimental
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
 
-import chisel.lib.dclib.{DCInput, DCOutput}
+
+package chisel.lib.dclib
+
 import chisel3._
+import _root_.circt.stage.ChiselStage
 import chisel3.util._
 
 /**
-  * This module declares a multi-input decoupled operator.  This is an example using showing how to use
-  * [[DCInput]] and [[DCOutput]] modules to create a module with registered-output timing.
-  *
-  * @param data   Data type to operate on
-  * @param n      The number of inputs for the operator
-  * @param op     Function with the required operator
-  */
+ * This module declares a multi-input decoupled operator.  This is an example using showing how to use
+ * [[DCInput]] and [[DCOutput]] modules to create a module with registered-output timing.
+ *
+ * @param data   Data type to operate on
+ * @param n      The number of inputs for the operator
+ * @param op     Function with the required operator
+ */
 class DCReduce[D <: Data](data: D, n: Int, op: (D, D) => D) extends Module {
   val io = IO(new Bundle {
     val a = Vec(n, Flipped(Decoupled(data.cloneType)))
@@ -40,6 +47,5 @@ class DCReduce[D <: Data](data: D, n: Int, op: (D, D) => D) extends Module {
 
 object CreateDcReduce extends App {
   def xor(a: UInt, b: UInt) : UInt = a ^ b
-  (new chisel3.stage.ChiselStage).execute(Array("--target-dir", "generated"), 
-                                          Seq(chisel3.stage.ChiselGeneratorAnnotation(() => new DCReduce(UInt(8.W), n=6, op=xor))))
+  ChiselStage.emitSystemVerilogFile(new DCReduce(UInt(8.W), n=6, op=xor), Array.empty, Array("--target-dir", "generated"))
 }

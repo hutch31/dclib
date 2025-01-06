@@ -1,7 +1,15 @@
+//----------------------------------------------------------------------
+// This file has no Copyright, as it is released in the public domain
+// Author: Guy Hutchison (guy@ghutchis.org)
+// see http://unlicense.org/
+//----------------------------------------------------------------------
+
+
 package chisel.lib.dclib
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.ImplicitConversions.intToUInt
 
 /**
  * Creates a new signal class for sending credit-based flow control.  The credit-based
@@ -17,7 +25,7 @@ class CreditIO[D <: Data](data: D) extends Bundle {
 }
 
 /**
- * Creates a credit sender which converts between [[chisel3.util.DecoupledIO]] interfaces and
+ * Creates a credit sender which converts between DecoupledIO interfaces and
  * a [[CreditIO]] interface.  This basic credit interface requires that the amount
  * of maximum receiver credit be known at design time, and DCCreditSender
  * initializes to this credit amount.
@@ -45,7 +53,7 @@ class DCCreditSender[D <: Data](data: D, maxCredit: Int) extends Module {
     curCredit := curCredit - 1.U
   }
   io.enq.ready := curCredit > 0.U
-  val dataOut = RegEnable(next=io.enq.bits, enable=io.enq.fire)
+  val dataOut = RegEnable(io.enq.bits, 0.asTypeOf(data), io.enq.fire)
   val validOut = RegNext(next=io.enq.fire, init=false.B)
   io.deq.valid := validOut
   io.deq.bits := dataOut
@@ -68,7 +76,7 @@ class DCCreditReceiver[D <: Data](data: D, val maxCredit: Int) extends Module {
   override def desiredName: String = "DCCreditReceiver_" + data.toString
 
   val ivalid = RegNext(io.enq.valid, init=0.B)
-  val idata = RegNext(io.enq.bits)
+  val idata = RegNext(io.enq.bits, 0.asTypeOf(data))
   val outFifo = Module(new Queue(data.cloneType, maxCredit))
   val nextCredit = WireDefault(0.B)
 
