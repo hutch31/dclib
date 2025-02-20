@@ -17,10 +17,6 @@ import chisel3.util.experimental.InlineInstance
   * deq.valid and deq.bits will be registered, enq.ready will be combinatorial
   */
 class DCOutput[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) with InlineInstance {
-//  val io = IO(new Bundle {
-//    val enq = Flipped(new DecoupledIO(data.cloneType))
-//    val deq = new DecoupledIO(data.cloneType)
-//  })
   override def desiredName: String = "DCOutput_" + data.toString
 
   val r_valid = RegInit(false.B)

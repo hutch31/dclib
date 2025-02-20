@@ -21,10 +21,6 @@ import chisel3.util.experimental.InlineInstance
   * deq interface is not ready
   */
 class DCInput[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) with InlineInstance {
-//  val io = IO(new Bundle {
-//    val enq = Flipped(new DecoupledIO(data.cloneType))
-//    val deq = new DecoupledIO(data.cloneType)
-//  })
   override def desiredName: String = "DCInput_" + data.toString
 
   // val r_valid = RegInit(false.B)

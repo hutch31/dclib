@@ -1,5 +1,5 @@
 ThisBuild / organization := "org.ghutchis"
-ThisBuild / version := "2025-01-06"
+ThisBuild / version := "2025-02-20"
 ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / publish / skip := true
 ThisBuild / publishMavenStyle := true

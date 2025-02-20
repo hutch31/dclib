@@ -22,10 +22,6 @@ import chisel3.util.experimental.InlineInstance
   * @param data The data type for the payload
   */
 class DCHold[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) with InlineInstance {
-//  val io = IO(new Bundle {
-//    val enq = Flipped(new DecoupledIO(data.cloneType))
-//    val deq = new DecoupledIO(data.cloneType)
-//  })
   override def desiredName: String = "DCHold_" + data.toString
 
   val p_valid = RegInit(init = 0.U)

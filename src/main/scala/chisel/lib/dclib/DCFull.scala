@@ -31,10 +31,6 @@ object DCFull {
  * @param data Incoming data type
  */
 class DCFull[D <: Data](data: D, dataReset : Boolean = false) extends DCAbstractBuffer(data) {
-//  val io = IO(new Bundle {
-//    val enq = Flipped(new DecoupledIO(data.cloneType))
-//    val deq = new DecoupledIO(data.cloneType)
-//  })
   override def desiredName: String = "DCFull_" + data.toString
 
   // These are used for control replication for large fan-out
